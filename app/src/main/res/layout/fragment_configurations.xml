@@ -135,6 +135,15 @@
             android:text="@string/add_configuration"
             android:textColor="@color/black01dp" />
 
+        <Button
+            android:id="@+id/about"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="About    this     APP"
+            android:textColor="@color/black01dp" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

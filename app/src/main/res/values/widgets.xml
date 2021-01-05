@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+<!--    新节点加在这里-->
+
     <string-array name="widget_names">
         <item>Debug</item>
         <item>Joystick</item>
