@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.kwanwaipang.rosandroid.ui.fragments.MapFragment;
 import com.kwanwaipang.rosandroid.ui.fragments.ssh.SshFragment;
 import com.kwanwaipang.rosandroid.ui.fragments.details.DetailsFragment;
 import com.kwanwaipang.rosandroid.ui.fragments.viz.VizFragment;
@@ -23,7 +24,7 @@ import com.kwanwaipang.rosandroid.ui.fragments.MasterFragment;
 public class ConfigTabsPagerAdapter extends FragmentPagerAdapter {
 
     //可以通过此处新增fragment
-    private final String[] tabTitles = new String[]{"Master", "Viz", "Details", "SSH"};
+    private final String[] tabTitles = new String[]{"Master", "Viz", "Details", "SSH","Indoor Map"};
 
 
     public ConfigTabsPagerAdapter(@NonNull FragmentManager fm) {
@@ -43,6 +44,8 @@ public class ConfigTabsPagerAdapter extends FragmentPagerAdapter {
                 return DetailsFragment.newInstance();
             case 3:
                 return SshFragment.newInstance();
+            case 4:
+                return MapFragment.newInstance();
 
         }
 
@@ -51,7 +54,7 @@ public class ConfigTabsPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 4;
+        return 5;
     }
 
     @Override

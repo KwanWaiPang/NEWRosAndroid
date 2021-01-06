@@ -23,6 +23,10 @@ import com.google.android.material.tabs.TabLayout;
 import com.kwanwaipang.rosandroid.R;
 import com.kwanwaipang.rosandroid.utility.Utils;
 import com.kwanwaipang.rosandroid.viewmodel.MainViewModel;
+import com.liphy.navigation.network.LiphyCloudManager;
+import com.parse.ParseException;
+
+import java.util.ArrayList;
 
 
 /**
@@ -63,6 +67,22 @@ public class MainFragment extends Fragment implements OnBackPressedListener {
         drawerLayout = view.findViewById(R.id.drawer_layout);
 
         drawerLayout.setScrimColor(getResources().getColor(R.color.drawerFadeColor));
+
+
+        // load liphy cloud data
+        LiphyCloudManager manager = LiphyCloudManager.getInstance();
+        ArrayList<String> filters = new ArrayList<>();
+        try {
+            manager.fetchLightBeaconsFromCloud();
+            manager.fetchBuildingsFromCloud(filters);
+        } catch (ParseException e) {
+            e.printStackTrace();
+
+        }
+
+
+
+
 
         // Connect toolbar to application
         if(getActivity() instanceof AppCompatActivity){

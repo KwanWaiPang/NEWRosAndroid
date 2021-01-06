@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+def secretPropertiesFile = rootProject.file("./secret.properties")
+def secretProperties = new Properties()
+secretProperties.load(new FileInputStream(secretPropertiesFile))
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
@@ -11,18 +15,26 @@ android {
         versionCode 4
         versionName '1.1.1'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a'
+        }
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders = ["appid": secretProperties['appid'], "secret": secretProperties['secret']]
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = ["appid": secretProperties['appid'], "secret": secretProperties['secret']]
         }
     }
 
     compileOptions {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     viewBinding {
@@ -42,6 +54,19 @@ dependencies {
 
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'
 
+    // liphy
+    compile(name: 'liphy-sdk-3.98', ext: 'aar')
+    compile(name: 'liphynavigation-sdk-regular-debug123', ext: 'aar')
+    implementation 'com.parse:parse-android:1.15.8'
+    implementation "com.jakewharton.timber:timber:4.7.1"
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+
+    // mapxus
+    implementation 'com.mapxus.map:mapxusmap:4.0.8'
+    implementation 'com.mapxus.positioning:positioning:2.0.4'
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9:0.8.0'
+
     // ROS
     implementation "org.ros.rosjava_core:rosjava:0.3.6"
     implementation "org.ros.rosjava_messages:diagnostic_msgs:1.12.7"
@@ -55,6 +80,7 @@ dependencies {
 
     // Room
     implementation "androidx.room:room-runtime:2.2.5"
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     annotationProcessor "androidx.room:room-compiler:2.2.5"
 
     // Parsing
