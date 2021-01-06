@@ -57,7 +57,7 @@ public class indoormap extends Fragment implements OnMapReadyCallback, OnMapxusM
         mapViewProvider.getMapxusMapAsync(this);
 
 
-// /      // Create the ROSTopicController
+//  /      // Create the ROSTopicController
 //        controller = new ROSTopicController(this);
 //        controller.initialize(nodeMainExecutor, nodeConfiguration);
 //        Point robotlocalization=controller.getOdometry().getPose().getPose().getPosition();
