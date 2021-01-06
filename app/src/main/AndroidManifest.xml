@@ -3,6 +3,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.kwanwaipang.rosandroid">
 
+    <uses-sdk tools:overrideLibrary="liphy.io.liphysdk" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -10,13 +20,31 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
-        android:allowBackup="false"
+        android:name=".BaseApplication"
         android:icon="@mipmap/ic_launcher1"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning"
         tools:replace="android:icon">
+
+        <!-- Mapxus -->
+        <meta-data
+            android:name="com.mapxus.api.v1.appid"
+            android:value="${appid}" />
+        <meta-data
+            android:name="com.mapxus.api.v1.secret"
+            android:value="${secret}" />
+
+        <!-- Liphy access token -->
+        <meta-data
+            android:name="com.parse.SERVER_URL"
+            android:value="@string/parse_server_url" />
+        <meta-data
+            android:name="com.parse.APPLICATION_ID"
+            android:value="@string/parse_app_id" />
+
+
         <activity
             android:name="com.kwanwaipang.rosandroid.ui.activity.MainActivity"
             android:windowSoftInputMode="adjustResize"
@@ -34,6 +62,13 @@
                 <action android:name="org.ros.android.NodeMainExecutorService" />
             </intent-filter>
         </service>
+
+        <service
+            android:name="com.liphy.navigation.bluetooth.BleDetectionService"
+            android:enabled="true"
+            android:exported="true" />
+        <service android:name="com.liphy.navigation.LiphyLocationService"/>
+
     </application>
 
 </manifest>
