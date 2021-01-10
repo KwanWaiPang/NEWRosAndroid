@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.kwanwaipang.rosandroid.ui.fragments.MapFragment;
+import com.kwanwaipang.rosandroid.ui.fragments.indoormap;
 import com.kwanwaipang.rosandroid.ui.fragments.ssh.SshFragment;
 import com.kwanwaipang.rosandroid.ui.fragments.details.DetailsFragment;
 import com.kwanwaipang.rosandroid.ui.fragments.viz.VizFragment;
@@ -46,6 +47,7 @@ public class ConfigTabsPagerAdapter extends FragmentPagerAdapter {
                 return SshFragment.newInstance();
             case 4:
                 return MapFragment.newInstance();
+//                return indoormap.newInstance();
 
         }
 

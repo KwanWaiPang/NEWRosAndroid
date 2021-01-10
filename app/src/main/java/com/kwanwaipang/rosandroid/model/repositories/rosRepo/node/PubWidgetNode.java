@@ -11,7 +11,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * ROS Node for publishing Messages on a specific topic.
+ * ROS Node for publishing Messages on a specific topic.   //ROS节点，用于发布有关特定主题的消息
  *
  * @author Nico Studt
  * @version 1.0.0
@@ -19,7 +19,7 @@ import java.util.TimerTask;
  * @updated on
  * @modified by
  */
-public class PubNode extends AbstractNode {
+public class PubWidgetNode extends AbstractWidgetNode {//发布者节点
 
     private Publisher<Message> publisher;
     private BaseData lastData;
@@ -41,10 +41,10 @@ public class PubNode extends AbstractNode {
      * @param data Data to publish
      */
     public void setData(BaseData data) {
-        this.lastData = data;
+        this.lastData = data;//发布者获取数据
 
         if (immediatePublish) {
-            publish();
+            publish();//发布者发布数据
         }
     }
 

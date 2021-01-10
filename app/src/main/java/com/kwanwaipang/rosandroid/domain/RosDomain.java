@@ -11,13 +11,18 @@ import com.kwanwaipang.rosandroid.model.repositories.ConfigRepository;
 import com.kwanwaipang.rosandroid.model.repositories.ConfigRepositoryImpl;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.RosRepository;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.connection.ConnectionType;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.ImageData;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.OdometryData;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.RosData;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.Topic;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.TwistData;
 import com.kwanwaipang.rosandroid.utility.LambdaTask;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.BaseData;
 import com.kwanwaipang.rosandroid.model.entities.BaseEntity;
 
 import java.util.List;
+
+import geometry_msgs.Twist;
 
 
 /**
@@ -75,14 +80,26 @@ public class RosDomain {
     }
 
 
-    public void publishData(BaseData data) {
-        rosRepo.publishData(data);
+    //发布twist话题
+    public void publishTwistData(TwistData data){
+        rosRepo.publishTwistData(data);
     }
+
+
+    // this is for the original app's widget
+    public void publishWidgetData(BaseData data) {
+        rosRepo.publishWidgetData(data);
+    }
+
+//    public void publishData(BaseData data) {
+//        rosRepo.publishData(data);
+//    }
 
     public void createWidget(String widgetType) {
         new LambdaTask(() -> configRepository.createWidget(widgetType)).execute();
     }
 
+    //添加小部件
     public void addWidget(BaseEntity widget) {
         configRepository.addWidget(widget);
     }
@@ -100,6 +117,9 @@ public class RosDomain {
     }
 
     public LiveData<RosData> getData(){ return this.rosRepo.getData(); }
+
+    public LiveData<ImageData> getImageData(){ return this.rosRepo.getImageData(); }
+    public LiveData<OdometryData> getOdometryData(){ return this.rosRepo.getOdometryData(); }
 
 
     public void updateMaster(MasterEntity master) {

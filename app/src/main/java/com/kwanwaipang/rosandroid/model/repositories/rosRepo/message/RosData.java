@@ -13,8 +13,10 @@ import org.ros.internal.message.Message;
  */
 public class RosData {
 
-    private final Topic topic;
-    private final Message message;
+//    private final Topic topic;
+//    private final Message message;
+    private Topic topic;
+    private Message message;
 
 
     public RosData(Topic topic, Message message) {
@@ -29,5 +31,13 @@ public class RosData {
 
     public Message getMessage() {
         return this.message;
+    }
+
+    public void setTopic(Topic topic) {
+        this.topic = topic;
+    }
+
+    public void setMessage(Message message) {
+        this.message = message;
     }
 }

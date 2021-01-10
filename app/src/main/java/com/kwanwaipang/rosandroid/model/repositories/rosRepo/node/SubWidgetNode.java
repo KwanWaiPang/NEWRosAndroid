@@ -14,12 +14,12 @@ import org.ros.node.topic.Subscriber;
  * @version 1.0.0
  * @created on 16.09.20
  */
-public class SubNode extends AbstractNode {
+public class SubWidgetNode extends AbstractWidgetNode {//订阅者节点
 
     private final NodeListener listener;
 
 
-    public SubNode(NodeListener listener) {
+    public SubWidgetNode(NodeListener listener) {
         this.listener = listener;
     }
 

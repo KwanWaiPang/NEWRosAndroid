@@ -14,12 +14,16 @@ import com.kwanwaipang.rosandroid.model.entities.MasterEntity;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.connection.ConnectionCheckTask;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.connection.ConnectionListener;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.connection.ConnectionType;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.ImageData;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.OdometryData;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.RosData;
-import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.AbstractNode;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.TwistData;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.AbstractWidgetNode;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.GeneralNode;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.NodeMainExecutorService;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.NodeMainExecutorServiceListener;
-import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.PubNode;
-import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.SubNode;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.PubWidgetNode;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.SubWidgetNode;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.Topic;
 import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.BaseData;
 import com.kwanwaipang.rosandroid.model.entities.BaseEntity;
@@ -39,11 +43,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import geometry_msgs.Twist;
+
 
 /**
- * The ROS repository is responsible for connecting to the ROS master
+ * The ROS repository (资料库) is responsible for connecting to the ROS master
  * and creating nodes depending on the respective widgets.
- *
+ *ROS存储库负责连接到ROS主节点并根据相应的小部件创建节点。
  * @author Nico Studt
  * @version 1.1.3
  * @created on 16.01.20
@@ -54,19 +60,26 @@ import java.util.List;
  * @updated on 16.11.2020
  * @modified by Nils Rottmann
  */
-public class RosRepository implements SubNode.NodeListener {
+public class RosRepository implements SubWidgetNode.NodeListener, GeneralNode.NodeListener  {
 
-    private static final String TAG = RosRepository.class.getSimpleName();
-    private static RosRepository instance;
+    private static final String TAG = RosRepository.class.getSimpleName();// use for debug
+    private static RosRepository instance;//本实例
 
     private final WeakReference<Context> contextReference;
-    private MasterEntity master;
+    private MasterEntity master;//要连接的master
+
+    // original stuff in the app
     private final List<BaseEntity> currentWidgets;
-    private final HashMap<Topic, AbstractNode> currentNodes;
-    private final MutableLiveData<ConnectionType> rosConnected;
-    private final MutableLiveData<RosData> receivedData;
+    private final HashMap<Topic, AbstractWidgetNode> currentNodes;//当前话题与节点 (它存储的内容是键值对(key-value)映射)
+    private final MutableLiveData<ConnectionType> rosConnected;//此处定义了连接的类型
+    private final MutableLiveData<RosData> receivedData;//ROS数据，包括了话题与消息
     private NodeMainExecutorService nodeMainExecutorService;
     private NodeConfiguration nodeConfiguration;
+
+    // for liphy ros project
+    private GeneralNode liphyNode;
+    private final MutableLiveData<ImageData> receivedImageData;
+    private final MutableLiveData<OdometryData> receivedOdometryData;
 
 
     /**
@@ -78,6 +91,11 @@ public class RosRepository implements SubNode.NodeListener {
         this.currentNodes = new HashMap<>();
         this.rosConnected = new MutableLiveData<>(ConnectionType.DISCONNECTED);
         this.receivedData = new MutableLiveData<>();
+
+        // liphy ros project
+        this.receivedImageData = new MutableLiveData<>();
+        this.receivedOdometryData = new MutableLiveData<>();
+        this.liphyNode = new GeneralNode(this);//将节点在此处创建了
     }
 
 
@@ -99,15 +117,47 @@ public class RosRepository implements SubNode.NodeListener {
         this.receivedData.postValue(message);
     }
 
+    @Override
+    public void onOdometryUpdate(OdometryData data) {
+        this.receivedOdometryData.postValue(data);
+
+    }
+
+    @Override
+    public void onImageUpdate(ImageData data) {
+        this.receivedImageData.postValue(data);
+
+    }
+
+    private void registerLiphyNode() {//将自己建立的节点注册
+        if (rosConnected.getValue() != ConnectionType.CONNECTED) {
+            Log.w(TAG, "Not connected with master");
+            return;
+        }
+        nodeMainExecutorService.execute(liphyNode, nodeConfiguration);
+    }
+
+    public void publishTwistData(TwistData data) {//此处发布消息
+        liphyNode.setTwistData((Twist) data.getMessage());
+    }
+
+
     /**
      * Find the associated node and inform it about the changed data.
      * @param data Widget data that has changed
      */
-    public void publishData(BaseData data) {
-        AbstractNode node = currentNodes.get(data.getTopic());
+//    public void publishData(BaseData data) {
+//        AbstractWidgetNode node = currentNodes.get(data.getTopic());//according to the data中的topic名字,获取当前的节点
+//
+//        if(node instanceof PubWidgetNode) {
+//            ((PubWidgetNode)node).setData(data);//发布者发布数据
+//        }
+//    }
+    public void publishWidgetData(BaseData data) {
+        AbstractWidgetNode node = currentNodes.get(data.getTopic());
 
-        if(node instanceof PubNode) {
-            ((PubNode)node).setData(data);
+        if(node instanceof PubWidgetNode) {
+            ((PubWidgetNode)node).setData(data);
         }
     }
 
@@ -179,7 +229,97 @@ public class RosRepository implements SubNode.NodeListener {
     }
 
 
+    private URI getMasterURI() {
+        String masterString = String.format("http://%s:%s/", master.ip, master.port);
+        return URI.create(masterString);
+    }
 
+    private String getDefaultHostAddress() {
+        return InetAddressFactory.newNonLoopback().getHostAddress();
+    }
+
+    public LiveData<RosData> getData() {
+        return receivedData;
+    }
+
+    public LiveData<ImageData> getImageData() {
+        return receivedImageData;
+    }
+
+    public LiveData<OdometryData> getOdometryData() {
+        return receivedOdometryData;
+    }
+
+    /**
+     * Get a list from the ROS Master with all available topics.
+     * @return Topic list
+     */
+    public List<Topic> getTopicList() {
+        ArrayList<Topic> topicList = new ArrayList<>();
+        if (nodeMainExecutorService == null || nodeConfiguration == null) {
+            return topicList;
+        }
+
+        MasterClient masterClient = new MasterClient(nodeMainExecutorService.getMasterUri());
+        GraphName graphName = GraphName.newAnonymous();
+        Response<List<TopicType>> responseList = masterClient.getTopicTypes(graphName);
+
+        for (TopicType result: responseList.getResult()) {
+            String name = result.getName();
+            String type = result.getMessageType();
+
+            Topic rosTopic = new Topic(name, type);
+            topicList.add(rosTopic);
+        }
+
+        return topicList;
+    }
+
+
+    private final class RosServiceConnection implements ServiceConnection {
+
+        NodeMainExecutorServiceListener serviceListener;
+        URI customMasterUri;
+
+
+        RosServiceConnection(URI customUri) {
+            customMasterUri = customUri;
+        }
+
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            nodeMainExecutorService = ((NodeMainExecutorService.LocalBinder) binder).getService();
+            nodeMainExecutorService.setMasterUri(customMasterUri);
+            nodeMainExecutorService.setRosHostname(getDefaultHostAddress());
+
+            serviceListener = nodeMainExecutorService ->
+                    rosConnected.postValue(ConnectionType.DISCONNECTED);
+
+            nodeMainExecutorService.addListener(serviceListener);
+            rosConnected.setValue(ConnectionType.CONNECTED);
+
+            registerAllNodes();//注册所有节点
+            registerLiphyNode();//将自己建立的节点注册
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            nodeMainExecutorService.removeListener(serviceListener);
+        }
+    }
+
+    public NodeMainExecutorService getNodeMainExecutorService(){
+        return nodeMainExecutorService;
+    }
+
+    public NodeConfiguration getNodeConfiguration(){
+        return nodeConfiguration;
+    }
+
+
+
+    //////////////////////////////////  for widgets  ///////////////////////////////////
     /**
      * React on a widget change. If at least one widget is added, deleted or changed this method
      * should be called.
@@ -257,15 +397,18 @@ public class RosRepository implements SubNode.NodeListener {
      * The node will be created and subsequently registered.
      * @param widget Widget to be added
      */
-    private AbstractNode addNode(BaseEntity widget) {
+
+    //添加节点
+    //并且直接定义为是发布者还是订阅者
+    private AbstractWidgetNode addNode(BaseEntity widget) {
         // Create a new node from widget
-        AbstractNode node;
+        AbstractWidgetNode node;
 
         if (widget instanceof PublisherEntity) {
-            node = new PubNode();
+            node = new PubWidgetNode();
 
         } else if (widget instanceof SubscriberEntity) {
-            node = new SubNode(this);
+            node = new SubWidgetNode(this);
 
         }else {
             Log.i(TAG, "Widget is either publisher nor subscriber.");
@@ -274,7 +417,7 @@ public class RosRepository implements SubNode.NodeListener {
 
         // Set node topic, add to node list and register it
         node.setWidget(widget);
-        currentNodes.put(node.getTopic(), node);
+        currentNodes.put(node.getTopic(), node);//所有节点加入currentNodes
 
         return node;
     }
@@ -285,16 +428,16 @@ public class RosRepository implements SubNode.NodeListener {
      * @param oldWidget Old version of the widget
      * @param widget Widget to update
      */
-    private void updateNode(BaseEntity oldWidget, BaseEntity widget) {
+    private void updateNode(BaseEntity oldWidget, BaseEntity widget) {//更新currentNodes
         Log.i(TAG, "Update Widget: " + oldWidget.name);
 
         if (oldWidget.equalRosState(widget)){
-            AbstractNode node = this.currentNodes.get(widget.topic);
+            AbstractWidgetNode node = this.currentNodes.get(widget.topic);
             node.setWidget(widget);
 
         } else{
             this.removeNode(oldWidget);
-            AbstractNode node = this.addNode(widget);
+            AbstractWidgetNode node = this.addNode(widget);
             this.registerNode(node);
         }
 
@@ -305,7 +448,7 @@ public class RosRepository implements SubNode.NodeListener {
      * @param widget Widget to remove
      */
     private void removeNode(BaseEntity widget) {
-        AbstractNode node = this.currentNodes.remove(widget.topic);
+        AbstractWidgetNode node = this.currentNodes.remove(widget.topic);
         this.unregisterNode(node);
     }
 
@@ -313,7 +456,7 @@ public class RosRepository implements SubNode.NodeListener {
      * Connect the node to ROS node graph if a connection to the ROS master is running.
      * @param node Node to connect
      */
-    private void registerNode(AbstractNode node) {
+    private void registerNode(AbstractWidgetNode node) {//注册节点
         Log.i(TAG, "register Node");
 
         if (rosConnected.getValue() != ConnectionType.CONNECTED) {
@@ -328,7 +471,7 @@ public class RosRepository implements SubNode.NodeListener {
      * Disconnect the node from ROS node graph if a connection to the ROS master is running.
      * @param node Node to disconnect
      */
-    private void unregisterNode(AbstractNode node) {
+    private void unregisterNode(AbstractWidgetNode node) {
         Log.i(TAG, "unregister Node");
 
         if (rosConnected.getValue() != ConnectionType.CONNECTED) {
@@ -340,13 +483,13 @@ public class RosRepository implements SubNode.NodeListener {
     }
 
     private void registerAllNodes() {
-        for (AbstractNode node: currentNodes.values()) {
-            this.registerNode(node);
+        for (AbstractWidgetNode node: currentNodes.values()) {
+            this.registerNode(node);//注册节点
         }
     }
 
     private void unregisterAllNodes() {
-        for (AbstractNode node: currentNodes.values()) {
+        for (AbstractWidgetNode node: currentNodes.values()) {
             this.unregisterNode(node);
         }
     }
@@ -356,81 +499,11 @@ public class RosRepository implements SubNode.NodeListener {
      * unregistered from the service and reregistered due to the implementation of ROS.
      * @param node Node main to be reregistered
      */
-    private void reregisterNode(AbstractNode node) {
+    private void reregisterNode(AbstractWidgetNode node) {
         Log.i(TAG, "Reregister Node");
 
         unregisterNode(node);
         registerNode(node);
     }
 
-    private URI getMasterURI() {
-        String masterString = String.format("http://%s:%s/", master.ip, master.port);
-        return URI.create(masterString);
-    }
-
-    private String getDefaultHostAddress() {
-        return InetAddressFactory.newNonLoopback().getHostAddress();
-    }
-
-    public LiveData<RosData> getData() {
-        return receivedData;
-    }
-
-    /**
-     * Get a list from the ROS Master with all available topics.
-     * @return Topic list
-     */
-    public List<Topic> getTopicList() {
-        ArrayList<Topic> topicList = new ArrayList<>();
-        if (nodeMainExecutorService == null || nodeConfiguration == null) {
-            return topicList;
-        }
-
-        MasterClient masterClient = new MasterClient(nodeMainExecutorService.getMasterUri());
-        GraphName graphName = GraphName.newAnonymous();
-        Response<List<TopicType>> responseList = masterClient.getTopicTypes(graphName);
-
-        for (TopicType result: responseList.getResult()) {
-            String name = result.getName();
-            String type = result.getMessageType();
-
-            Topic rosTopic = new Topic(name, type);
-            topicList.add(rosTopic);
-        }
-
-        return topicList;
-    }
-
-
-    private final class RosServiceConnection implements ServiceConnection {
-
-        NodeMainExecutorServiceListener serviceListener;
-        URI customMasterUri;
-
-
-        RosServiceConnection(URI customUri) {
-            customMasterUri = customUri;
-        }
-
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder binder) {
-            nodeMainExecutorService = ((NodeMainExecutorService.LocalBinder) binder).getService();
-            nodeMainExecutorService.setMasterUri(customMasterUri);
-            nodeMainExecutorService.setRosHostname(getDefaultHostAddress());
-
-            serviceListener = nodeMainExecutorService ->
-                    rosConnected.postValue(ConnectionType.DISCONNECTED);
-
-            nodeMainExecutorService.addListener(serviceListener);
-            rosConnected.setValue(ConnectionType.CONNECTED);
-
-            registerAllNodes();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            nodeMainExecutorService.removeListener(serviceListener);
-        }
-    }
 }

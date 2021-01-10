@@ -120,8 +120,8 @@ public class MasterFragment extends Fragment implements TextView.OnEditorActionL
         // User input ------------------------------------------------------------------------------
 
         binding.connectButton.setOnClickListener(v -> {
-                mViewModel.setMasterDeviceIp(ipAddressField.getText().toString());
-                mViewModel.connectToMaster();
+                mViewModel.setMasterDeviceIp(ipAddressField.getText().toString());//获取ID
+                mViewModel.connectToMaster();//连接到master
         });
         binding.disconnectButton.setOnClickListener(v -> mViewModel.disconnectFromMaster());
         binding.masterIpEditText.setOnEditorActionListener(this);

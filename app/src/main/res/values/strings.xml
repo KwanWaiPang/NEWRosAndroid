@@ -14,8 +14,8 @@
     <string name="prefs_odometry_topic_edittext_key">prefs_odometry_topic_edittext</string>
     <string name="joy_topic">/cmd_vel</string>
 <!--    <string name="camera_topic">"/tb_1/mvcam/image/compressed"</string>-->
-    <string name="camera_topic">"/mvcam/image/compressed"</string>
-    <string name="odometry_topic">/odometry/filtered</string>
+    <string name="camera_topic">/mvcam/image/compressed</string>
+    <string name="odometry_topic">/tb_1/odometry/filtered</string>
 
 
     <string name="add_widget">Add widget</string>

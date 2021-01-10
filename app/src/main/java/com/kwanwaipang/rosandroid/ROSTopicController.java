@@ -3,27 +3,22 @@ package com.kwanwaipang.rosandroid;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.kwanwaipang.rosandroid.model.entities.PublisherEntity;
-import com.kwanwaipang.rosandroid.model.repositories.rosRepo.message.Topic;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.AbstractWidgetNode;
+import com.kwanwaipang.rosandroid.model.repositories.rosRepo.node.NodeMainExecutorService;
 import com.kwanwaipang.rosandroid.ui.activity.MainActivity;
 import com.kwanwaipang.rosandroid.ui.fragments.Utils;
 
 import geometry_msgs.Point;
-import geometry_msgs.Pose;
 import geometry_msgs.Quaternion;
 import geometry_msgs.Twist;
 import nav_msgs.Odometry;
 import sensor_msgs.CompressedImage;
-import sensor_msgs.LaserScan;
-import sensor_msgs.NavSatFix;
 
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.ConnectedNode;
 import org.ros.node.Node;
 import org.ros.node.NodeConfiguration;
-import org.ros.node.NodeMain;
-import org.ros.node.NodeMainExecutor;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
@@ -31,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class ROSTopicController extends PublisherEntity implements NodeMain {
+public class ROSTopicController extends AbstractWidgetNode {
 
     // Logcat Tag
     private static final String TAG = "ROSTopicController";
@@ -82,6 +77,11 @@ public class ROSTopicController extends PublisherEntity implements NodeMain {
     // The Robot's last recorded turn rate
     private static double turnRate;
 
+
+    /**
+     * Creates a RobotController.
+     * @param context The Context the RobotController belongs to.
+     */
     public ROSTopicController (MainActivity context){
         this.context = context;
         this.initialized = false;
@@ -107,7 +107,7 @@ public class ROSTopicController extends PublisherEntity implements NodeMain {
      * @param nodeMainExecutor The NodeMainExecutor on which to execute the NodeConfiguration.
      * @param nodeConfiguration The NodeConfiguration to execute
      */
-    public void initialize(NodeMainExecutor nodeMainExecutor, NodeConfiguration nodeConfiguration) {
+    public void initialize(NodeMainExecutorService nodeMainExecutor, NodeConfiguration nodeConfiguration) {
 
         nodeMainExecutor.execute(this, nodeConfiguration.setNodeName("android/robot_controller2"));////更换手机时，最好修改此处。改变控制器的名称
     }
@@ -200,19 +200,13 @@ public class ROSTopicController extends PublisherEntity implements NodeMain {
 
         // Get the correct topic names
         // Get the correct topic names
-        String moveTopic = PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(context.getString(R.string.prefs_joystick_topic_edittext_key),
-                        context.getString(R.string.joy_topic));
+        String moveTopic = "/cmd_vel";
 
 
-        String odometryTopic = PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(context.getString(R.string.prefs_odometry_topic_edittext_key),
-                        context.getString(R.string.odometry_topic));
+        String odometryTopic = "/tb_1/odometry/filtered";
 
 
-        String imageTopic = PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(context.getString(R.string.prefs_camera_topic_edittext_key),
-                        context.getString(R.string.camera_topic));
+        String imageTopic = "/tb_1/mvcam/image/compressed";
 
 
         // Refresh the Move Publisher

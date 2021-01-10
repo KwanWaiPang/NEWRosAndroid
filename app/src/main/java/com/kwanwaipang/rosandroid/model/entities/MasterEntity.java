@@ -14,12 +14,12 @@ import androidx.room.PrimaryKey;
  * @modified by
  */
 @Entity(tableName = "master_table")
-public class MasterEntity {
+public class MasterEntity {//master实体
 
     @PrimaryKey(autoGenerate = true)
     public long id;
 
     public long configId;
-    public String ip = "192.168.0.0";
+    public String ip = "10.79.138.249";//默认的IP
     public int port = 11311;
 }

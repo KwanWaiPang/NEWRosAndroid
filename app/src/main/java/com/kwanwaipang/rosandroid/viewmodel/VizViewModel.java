@@ -45,8 +45,11 @@ public class VizViewModel extends AndroidViewModel {
         return this.rosDomain.getData();
     }
 
-
     public void publishData(BaseData data) {
-        rosDomain.publishData(data);
+        rosDomain.publishWidgetData(data);
     }
+//    public void publishData(BaseData data) {
+//        rosDomain.publishData(data);
+//    }
+
 }

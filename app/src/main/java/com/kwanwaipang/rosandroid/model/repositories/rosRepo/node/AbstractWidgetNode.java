@@ -18,9 +18,10 @@ import org.ros.node.NodeMain;
  * @version 1.0.0
  * @created on 15.09.20
  */
-public class AbstractNode implements NodeMain {
+public class AbstractWidgetNode implements NodeMain {
+    //NodeMain(extends NodeListener)是创建节点所需的一个NodeListener。 应该使用NodeListener.onStart（ConnectedNode）来设置程序的发布者，订阅者等。
 
-    public static final String TAG = AbstractNode.class.getSimpleName();
+    public static final String TAG = AbstractWidgetNode.class.getSimpleName();
 
     protected Topic topic;
     protected BaseEntity widget;
@@ -50,6 +51,8 @@ public class AbstractNode implements NodeMain {
     public GraphName getDefaultNodeName() {
         return GraphName.of(topic.name);
     }
+//    返回值：
+//    如果未在节点的关联NodeConfiguration中指定名称，将使用的节点名称
 
 
     public Topic getTopic() {

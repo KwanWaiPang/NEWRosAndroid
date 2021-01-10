@@ -14,14 +14,14 @@ import java.util.Objects;
  * @version 1.0.0
  * @created on 23.09.20
  */
-public abstract class BaseEntity {
+public abstract class BaseEntity { //基础实体
 
     public long id;
     public String name;
     public String type;
     public long configId;
     public long creationTime;
-    public Topic topic;
+    public Topic topic;//定义topic，包括了名字与类型
     public int posX;
     public int posY;
     public int width;
