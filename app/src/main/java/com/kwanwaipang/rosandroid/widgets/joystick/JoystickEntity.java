@@ -28,7 +28,7 @@ public class JoystickEntity extends PublisherEntity {
     public JoystickEntity() {
         this.width = 4;
         this.height = 4;
-        this.topic = new Topic("cmd_vel", Twist._TYPE);
+        this.topic = new Topic("/cmd_vel", Twist._TYPE);
         this.immediatePublish = false;
         this.publishRate = 20f;
         this.xAxisMapping = "Angular/Z";

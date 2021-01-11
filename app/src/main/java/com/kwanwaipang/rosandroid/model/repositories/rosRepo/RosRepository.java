@@ -154,10 +154,10 @@ public class RosRepository implements SubWidgetNode.NodeListener, GeneralNode.No
 //        }
 //    }
     public void publishWidgetData(BaseData data) {
-        AbstractWidgetNode node = currentNodes.get(data.getTopic());
+        AbstractWidgetNode node = currentNodes.get(data.getTopic());//获取当前数据对应的话题对应的节点。
 
         if(node instanceof PubWidgetNode) {
-            ((PubWidgetNode)node).setData(data);
+            ((PubWidgetNode)node).setData(data);//发布者发布数据
         }
     }
 
@@ -405,10 +405,10 @@ public class RosRepository implements SubWidgetNode.NodeListener, GeneralNode.No
         AbstractWidgetNode node;
 
         if (widget instanceof PublisherEntity) {
-            node = new PubWidgetNode();
+            node = new PubWidgetNode();//创建发布者节点，发布者没有参数
 
         } else if (widget instanceof SubscriberEntity) {
-            node = new SubWidgetNode(this);
+            node = new SubWidgetNode(this);//创建订阅者节点
 
         }else {
             Log.i(TAG, "Widget is either publisher nor subscriber.");

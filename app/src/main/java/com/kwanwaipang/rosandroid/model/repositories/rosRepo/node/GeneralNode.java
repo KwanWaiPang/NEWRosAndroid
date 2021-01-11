@@ -21,9 +21,9 @@ import geometry_msgs.Twist;
 import nav_msgs.Odometry;
 import sensor_msgs.CompressedImage;
 
-public class GeneralNode implements NodeMain {//此节点，既可以发布消息，也可以订阅消息
+public class GeneralNode implements NodeMain {//此节点，既可以发布消息，也可以订阅消息.nodemain是一个接口
 
-    private static final String TAG = "GeneralNode";
+    private static final String TAG = "GeneralNode";//
 
     private ConnectedNode connectedNode; // save for deletion later
 
@@ -34,40 +34,26 @@ public class GeneralNode implements NodeMain {//此节点，既可以发布消�
     // publisher param
     private Timer publishTimer;
     private long publishPeriod = 100L;
-    private boolean immediatePublish = true;
+    private boolean immediatePublish = true;//定义了马上发布，如果要按给定频率发布，直接设置为false即可
 
     // listeners for subscriber callback
     private final GeneralNode.NodeListener listener;
 
-    // topic/data
-//    private MovementTopic movementTopic;
-//    private OdometryTopic odometryTopic;
-//    private ImageTopic imageTopic;
+    // topic/data。这个对象其实是包含了topic与message
     private TwistData twistData;
     private OdometryData odometryData;
     private ImageData imageData;
 
-//    private Twist speedCommand;
-//    private Odometry odometry;
-//    private CompressedImage image;
 
-//    // The Robot's starting position
-//    private static Point startPos;
-//    // The Robot's last recorded position
-//    private static Point currentPos;
-//    // The Robot's last recorded orientation
-//    private static Quaternion rotation;
-//    // The Robot's last recorded speed
-//    private static double speed;
-//    // The Robot's last recorded turn rate
-//    private static double turnRate;
 
     public GeneralNode(NodeListener listener) {  //构造函数
+        //参考pub与sub的写法，会发现，只有sub输入参数
         this.listener = listener;
     }
 
     @Override
     public GraphName getDefaultNodeName() {///返回节点的默认名字。该名字会一直被使用，除非在NodeConfiguration中被重新设置
+        //继承自nodeMain再继承自Nodeistener
         return GraphName.of(TAG);//当rosjava指向node，topic或者parameters的时候，会采用GraphName
     }
 
@@ -76,23 +62,29 @@ public class GeneralNode implements NodeMain {//此节点，既可以发布消�
         connectedNode = parentNode;
 
         // publishers
-        twistPublisher = parentNode.newPublisher(twistData.getTopic().name , Twist._TYPE);////定义发布的话题的名字以及其消息类型
-        twistData.setMessage(twistPublisher.newMessage());//设置数据
-        //此处还没发布
+        twistPublisher = parentNode.newPublisher(twistData.getTopic().name , Twist._TYPE);//定义发布者，其包含了话题的名字以及其消息类型
+        twistData.setMessage(twistPublisher.newMessage());//设置消息，将消息的内容设置为twistPublisher.newMessage()
+        //twistPublisher.newMessage()为创建消息
+        //此处还没发布，在RosRepository.publishTwistData中在发布
 
         //
-        createAndStartSchedule();
+        createAndStartSchedule();//此处定义了发布的频率
 
         // subscribers
         try {
             odometrySubscriber = parentNode.newSubscriber(odometryData.getTopic().name, Odometry._TYPE);//创建一个订阅者，对应的要填入话题的名称以及消息的类型
-            odometrySubscriber.addMessageListener(new MessageListener<Odometry>() {
-                @Override
-                public void onNewMessage(Odometry odometry) {
-                    odometryData.setMessage(odometry);
-                    listener.onOdometryUpdate(odometryData);
-                }
+
+            odometrySubscriber.addMessageListener(data -> {
+                listener.onOdometryUpdate(new OdometryData(odometryData.getTopic(), data));
             });
+
+//            odometrySubscriber.addMessageListener(new MessageListener<Odometry>() {
+//                @Override
+//                public void onNewMessage(Odometry odometry) {//Odometry消息
+//                    odometryData.setMessage(odometry);
+//                    listener.onOdometryUpdate(odometryData);//odometryData中已经包含了话题与消息
+//                }
+//            });
 
             imageSubscriber = parentNode.newSubscriber(imageData.getTopic().name, CompressedImage._TYPE);
             imageSubscriber.addMessageListener(new MessageListener<CompressedImage>() {
@@ -144,12 +136,21 @@ public class GeneralNode implements NodeMain {//此节点，既可以发布消�
      *
      * @param twist Data to publish
      */
-    public void setTwistData(Twist twist) {
-        this.twistData.setMessage(twist);
+    public void setTwistData(Twist twist) {//用于发布ROS消息
+        this.twistData.setMessage(twist);//设置消息，然后发布
 
-        if (immediatePublish) {
+        if (immediatePublish) {//如果是立即发布，那就马上发布
             publish();//发布消息
-        }
+        }//否则的话，应该按频率发布
+//        else{
+//            publishTimer = new Timer();
+//            publishTimer.schedule(new TimerTask() {
+//                @Override
+//                public void run() {
+//                    publish();
+//                }
+//            }, publishPeriod, publishPeriod);
+//        }
     }
 
     /**
@@ -159,7 +160,7 @@ public class GeneralNode implements NodeMain {//此节点，既可以发布消�
      * @param hz Frequency in hertz
      */
     public void setFrequency(float hz) {
-        this.publishPeriod = (long) (1000 / hz);
+        this.publishPeriod = (long) (1000 / hz);//发布的频率
     }
 
     /**
@@ -178,10 +179,13 @@ public class GeneralNode implements NodeMain {//此节点，既可以发布消�
             publishTimer.cancel();
         }
 
-        if (immediatePublish) {
+        if (immediatePublish) {//如果为真的，则返回，直接发布，否则，则通过下面代码来设置发布的频率
             return;
         }
 
+        //定义发布的频率
+        float publish_Rate = 1f;
+        setFrequency(publish_Rate);
         publishTimer = new Timer();
         publishTimer.schedule(new TimerTask() {
             @Override
@@ -200,9 +204,9 @@ public class GeneralNode implements NodeMain {//此节点，既可以发布消�
         // other data
     }
 
-    public interface NodeListener  {
+    public interface NodeListener  {//定义一个接口接收消息
         void onNewMessage(RosData message);
-        void onOdometryUpdate(OdometryData data);
+        void onOdometryUpdate(OdometryData data);//新建接口
         void onImageUpdate(ImageData data);
     }
 }

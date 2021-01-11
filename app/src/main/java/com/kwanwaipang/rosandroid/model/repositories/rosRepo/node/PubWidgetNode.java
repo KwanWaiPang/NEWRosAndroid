@@ -40,7 +40,7 @@ public class PubWidgetNode extends AbstractWidgetNode {//发布者节点
      *
      * @param data Data to publish
      */
-    public void setData(BaseData data) {
+    public void setData(BaseData data) {//发布
         this.lastData = data;//发布者获取数据
 
         if (immediatePublish) {
@@ -56,7 +56,7 @@ public class PubWidgetNode extends AbstractWidgetNode {//发布者节点
      */
     public void setFrequency(float hz) {
         this.pubPeriod = (long) (1000 / hz);
-    }
+    }//设置了发布的频率
 
     /**
      * Enable or disable immediate publishing.

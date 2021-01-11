@@ -25,7 +25,7 @@ public class RosData {
     }
 
 
-    public Topic getTopic() {
+    public Topic getTopic() {//获取topic，topic里面，定义了topic的name与topic的类型
         return this.topic;
     }
 

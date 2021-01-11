@@ -31,7 +31,7 @@ public class SubWidgetNode extends AbstractWidgetNode {//订阅者节点
         try {
             this.widget.validMessage = true;
 
-            Subscriber<? extends Message> subscriber = parentNode.newSubscriber(topic.name, topic.type);
+            Subscriber<? extends Message> subscriber = parentNode.newSubscriber(topic.name, topic.type);//创建订阅者，包含了话题的名字，消息的类型
 
             subscriber.addMessageListener(data -> {
                 listener.onNewMessage(new RosData(topic, data));
@@ -44,7 +44,7 @@ public class SubWidgetNode extends AbstractWidgetNode {//订阅者节点
 
     }
 
-    public interface NodeListener  {
+    public interface NodeListener  {//
         void onNewMessage(RosData message);
     }
 }
